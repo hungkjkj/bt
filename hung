@@ -1,0 +1,473 @@
+import pygame as pg 
+import sys
+#from characters import *
+#from scalemap import *
+import threading
+import socket,time,random
+#tgui = time.time()
+
+scalemap=[(1.6,6), (1.6,30),(1.6,4), (1.55,6), (1.55,11),(1.6,5)]
+
+astt = "astt"
+RYU = {"STANDING": (6,130,240), "JUMPING":(18,250,500,5,11,-350,-40,6,150), "MOVING":(8,170,240), "KICK":(11,240,280,-35,-100,[x for x in range(4,8)]), "PUNCH": (15,10,250,270,-30,-100,[5,12]),"RUNNING":(10,310,250) , "HIGHKICK":(32,-255,-255,-355,-110,[x for x in range(7,22)]),"HIGHKICK1":(0,24,250,500,300,310,6,25,32,5,11,11,32),"LOWKICK":(16,250,200,[3,11]),"SEX":"MALE", "PUNCH1":(200,250,-5,-25),"DAMAGE":(30,15),"POS":(70,-15),"SIZE":(250,230,70),"astt":{"LOWKICK":(0.6,2.7/3,60,-20),"PUNCH":(0.6,1/3,30,0),"HIGHKICK":(0.9,3/3,160),"KICK":(0.86,0.5/3,40,0)}, "bruh":()}
+CHUNLI = {"STANDING":(18,170,240),"JUMPING":(14,190,400,1,6,-250,-40,6,20),"MOVING":(12,170,240),"KICK":(28,430,350,-120,-250,[x for x in range(2,16)]),"PUNCH":(6,6,250,250,0,0,[2]),"RUNNING":(6,185,250),"HIGHKICK":(24,-125,50,-250,-50,[x for x in range(24)]),"HIGHKICK1":(-1,-1,270,320,0,0,-1,-1,-1,0,15,15,24),"LOWKICK":(13,250,200,[2,5,8,11]),"SEX":"FEMALE","PUNCH1":(0,0),"DAMAGE":(10,35),"POS":(80,-20),"SIZE":(210,250,70),"astt":{"LOWKICK":(0.6,2.7/3,23,0),"PUNCH":(0.6,1/3,20,90),"HIGHKICK":(1.19,1/3,130),"KICK":(0.86,2/3,40,17)}, "bruh":()}
+PIKACHU = {"STANDING":(40,200,250),"JUMPING":(20,250,250,0,20,0,0,5,0),"MOVING":(8,270,250),"PUNCH":(9,9,650,250,0,-400),"PUNCH1":(0,0),"SEX":"MALE","POS":(60,0),"SIZE":(300,250,190),"bruh":(),"astt":{"PUNCH":(1.7,2/3,120,150)},"DAMAGE":(50)}
+
+
+
+
+
+
+chonmap = random.randint(0,5)
+pg.init()
+sc = pg.display.set_mode((1800,900),pg.RESIZABLE)
+tm=0
+stt = "STANDING"
+fy=False
+clock = pg.time.Clock()
+stage=0
+hp=1000
+font = pg.font.SysFont('arial',150)
+nhal = {"ryu":RYU,"chunli":CHUNLI,"pikachu":PIKACHU}
+s2 = pg.Rect(1700,490,50,500)
+rx=ry=0
+tl = 0
+dflip = False
+class MAP:
+    def __init__(self,tm,nfrs,m):
+        self.tm = int(tm)
+        self.nfrs = nfrs
+        self.m=m
+    def vemap(self):
+        sc.fill((0,0,0))
+        if int(tm-self.tm)//2>=self.nfrs: self.tm = int(tm)
+        bg1 = pg.transform.scale(pg.image.load(f'MAP/m{self.m}/({int(tm-self.tm)//2}).gif'),(1810*scale*0.77,910*scale*0.77))
+        sc.blit(bg1,(0,0))
+class animate:
+    def __init__(self, nfrs,tm,name,stt):
+        self.nfrs = nfrs
+        self.tm=int(tm)
+        self.name = name
+        self.stt = stt
+    def danhdau(self):
+        if int(tm) - self.tm>=self.nfrs[stt][0]:
+            self.tm = int(tm)
+    def hoat_anh(self):
+        global stt, y, rx,ry
+        if stt == "STANDING":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy)
+        if stt == "JUMPING":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame "+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy)
+            ry=self.nfrs[stt][5]
+            if not fx:
+                rx=self.nfrs[stt][6]
+            if int(tm)-self.tm in range(self.nfrs[stt][3],self.nfrs[stt][4]):
+                y-=self.nfrs[stt][7]
+            if int(tm)-self.tm >= self.nfrs[stt][4]:
+                y+=self.nfrs[stt][7]-2
+            if int(tm)-self.tm==self.nfrs[stt][0]-1:
+                stt = "STANDING"
+                self.tm = int(tm)
+        if stt == "MOVING":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame "+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy)
+            rx=-5
+        if stt == "KICK":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy); ry=self.nfrs[stt][3]
+            if fx:rx=self.nfrs[stt][4]
+            if int(tm)-self.tm>=self.nfrs[stt][0]-1:
+                stt = "STANDING"
+                self.tm = int(tm)
+        if stt == "PUNCH":
+            if int(tm)-self.tm in range(self.nfrs[stt][1]):
+                anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][2]*scale,self.nfrs[stt][3]*scale)),fx,fy); ry=self.nfrs[stt][4]
+                if fx: rx=self.nfrs[stt][5]
+            else:
+                anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt+'1'][0]*scale,self.nfrs[stt+'1'][1]*scale)),fx,fy); ry=self.nfrs[stt+'1'][2]
+                if fx:rx=self.nfrs[stt+'1'][3]
+            if int(tm)-self.tm>=self.nfrs[stt][0]-1:
+                stt = "STANDING"
+                self.tm = int(tm) 
+        if stt == "RUNNING":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame "+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy)
+            if not fx: rx=-100
+            else: rx=-90
+            if int(tm)-self.tm==9: self.tm=int(tm)-4  
+        if stt == "HIGHKICK":
+            if int(tm)-self.tm not in range(self.nfrs[stt+'1'][0],self.nfrs[stt+'1'][1]):
+                anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt+'1'][2]*scale,self.nfrs[stt+'1'][3]*scale)),fx,fy)
+                ry=self.nfrs[stt][2]
+            else: anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt+'1'][4]*scale,self.nfrs[stt+'1'][5]*scale)),fx,fy)
+            if int(tm)-self.tm not in range(self.nfrs[stt+'1'][6]):ry=self.nfrs[stt][1]
+            else:ry=self.nfrs[stt][4]
+            if int(tm)-self.tm in range(self.nfrs[stt+'1'][7],self.nfrs[stt+'1'][8]):ry=self.nfrs[stt][3]
+            if not fx:
+                rx=-90
+            if int(tm)-self.tm in range(self.nfrs[stt+'1'][9],self.nfrs[stt+'1'][10]):
+                y-=2
+            if int(tm)-self.tm in range(self.nfrs[stt+'1'][11],self.nfrs[stt+'1'][12]):
+                y+=3
+            if int(tm)-self.tm==self.nfrs[stt][0]-1:
+                stt = "STANDING"
+                self.tm = int(tm)
+        if stt == "LOWKICK":
+            anh=pg.transform.flip(pg.transform.scale(pg.image.load("nhanvat/"+self.name+"_animations/"+stt+"/frame"+"("+str(int(tm)-self.tm)+")"+".gif"),(self.nfrs[stt][1]*scale,self.nfrs[stt][2]*scale)),fx,fy)
+            ry=80
+            if not fx:
+                rx=-90
+            if int(tm)-self.tm==self.nfrs[stt][0]-1:
+                stt = "STANDING"
+                self.tm = int(tm)
+        sc.blit(anh,(x+rx,y+ry-240))
+    #def hitbox(self):
+        #global rx,ry
+        #pg.draw.rect(sc,(255,0,0),(x+self.nfrs["POS"][0]*scale-35,ry+y-240+self.nfrs["POS"][1]*scale+50,self.nfrs["SIZE"][2],self.nfrs["SIZE"][1]),5)
+        #if stt in ["KICK","PUNCH","LOWKICK"]:
+            #app = [x+self.nfrs["POS"][0]*scale+self.nfrs[astt][stt][2]-self.nfrs["SIZE"][0]*self.nfrs[astt][stt][0],x+self.nfrs["POS"][0]*scale+self.nfrs[astt][stt][3]]
+            #s1 = pg.Rect(app[1-fx],(ry+y-240+self.nfrs["POS"][1]*scale+50)+(self.nfrs[astt][stt][1]*self.nfrs["SIZE"][1])-30,self.nfrs["SIZE"][0]*self.nfrs[astt][stt][0],10)
+            #pg.draw.rect(sc,(100,100,100),s1,2)
+            #if s1.colliderect(s2): print(True)
+        #if stt == "HIGHKICK":
+            ##print(".........")
+            #s1 = pg.Rect(x+self.nfrs["POS"][0]*scale+self.nfrs[astt][stt][2]-self.nfrs["SIZE"][0]*self.nfrs[astt][stt][0],(ry+y-240+self.nfrs["POS"][1]*scale+50)+(self.nfrs[astt][stt][1]*self.nfrs["SIZE"][1])-30,self.nfrs["SIZE"][0]*self.nfrs[astt][stt][0],10)
+            ##s1=pg.Rect(100,100,100,100)
+            #pg.draw.rect(sc,(100,100,100),s1,3)
+            #if s1.colliderect(s2): print(True)
+att = 0
+getpr=""
+special = False
+stamina = 1000
+vc_txt=font.render("∞", True, (255,255,255))
+RED,GREEN = (255,50,50),(10,255,30)
+color = GREEN
+font1=pg.font.Font(r'fontchu\BeVietnamPro-MediumItalic.ttf',34)
+hung1 = MAP(0,scalemap[chonmap][1],chonmap)
+scale1=scalemap[chonmap][0]*1.32
+scale = scale1/1.65
+xbandau=[200, 1300]
+x,y=200,450*(scale1/1.2) #{200,1200}
+fx = bool(x-200)
+def hehe():
+    global stt,special,rx,ry
+    while stage==3:
+        try:   
+            hung1.vemap()
+            try:
+                rx=ry=0
+                hung.danhdau()
+                hung.hoat_anh()
+                #hung.hitbox()
+            except Exception as e:
+                print(e)
+                stt = "STANDING"
+                hung.danhdau()
+                hung.hoat_anh()
+                special = False
+            sc.blit(vc_txt,(1700/2,0))
+            pg.display.update()
+        except Exception as e:pass
+p1 = threading.Thread(target=hehe, args=())
+fhe=True
+name = ''
+##############################################
+##################"""HÀM"""###################
+
+class text:
+    def __init__(self, x,y,TEXT,st):
+        self.x,self.y=x,y
+        self.text=''
+        self.TEXT = TEXT
+        self.rect = pg.Rect(self.x,self.y,300,50)  
+        self.st=st
+    def display(self,thing):
+        pg.draw.rect(sc,(100,100,100),self.rect)
+        pg.draw.rect(sc,(200,100,200),(self.x-2,self.y-2,302,52),2)
+        sc.blit(font1.render(self.text,True,(255,255,255)), (self.x,self.y))
+        sc.blit(font1.render(self.TEXT,True,(255,255,255)), (self.x+10,self.y-50))       
+class ketnoi:
+    def __init__(self,x,y):
+        self.x=x
+        self.y=y
+        self.__=""
+        self.chon = 'ip'
+        self.ip=self.port=''
+        self.bbbb = 2
+    def option(self):
+        global scale, scalewwdd,scalewd
+        sc.blit(anhnen,(0,0))
+        r1 = pg.Rect(1900/2-120,400,200,75)
+        r2 = pg.Rect(1900/2-120,500,200,75)        
+        for oo in ((1900/2-120,400),(1900/2-120,500)):
+            sc.blit(pg.transform.scale(pg.image.load(r"hhh\taophong1.jpg"),(200,75)),oo)
+        if any((r1.collidepoint(poschuot),r2.collidepoint(poschuot))):
+            if r1.collidepoint(poschuot): self.bbbb=0
+            else: self.bbbb=1
+        else: self.bbbb = 2
+        if self.bbbb == 0: sc.blit(pg.transform.scale(pg.image.load(r"hhh\taophong0.jpg"),(200,75)),(1900/2-120,400))
+        elif self.bbbb == 1:sc.blit(pg.transform.scale(pg.image.load(r"hhh\taophong0.jpg"),(200,75)),(1900/2-120,500))
+        for ev in pg.event.get():
+            scalewd = pg.display.get_surface().get_size()
+            scale *= scalewd[0]/scalewwdd[0]
+            scalewwdd = scalewd            
+            if ev.type==pg.QUIT:
+                pg.quit()
+                sys.exit() 
+            if ev.type == pg.MOUSEBUTTONDOWN:
+                if ev.button == 1:
+                    if pause_.rect.collidepoint(poschuot):
+                        if not pause_.bool: pause_.bool=True
+                        else:pause_.bool=False                
+                scalewd = pg.display.get_surface().get_size()
+                if scalewd!=scalewwdd:
+                    scale *= scalewd[0]/scalewwdd[0]
+                    scalewwdd = scalewd 
+                if ev.button==1 and r2.collidepoint(poschuot):
+                    self.__ = "vaophong" 
+        sc.blit(font1.render("tạo phòng",True,(255,255,255)),(1900/2-105,420))
+        sc.blit(font1.render("vào phòng",True,(255,255,255)),(1900/2-106,520))
+        pause_.draww()
+        pause_.bang()
+        sc.blit(chuot,poschuot)
+        pg.display.update()        
+    def vaophong(self):
+        global scale, scalewwdd,scalewd,dflip
+        sc.blit(anhnen,(0,0)) 
+        dic = {"ip":o1, "port":o2}
+        for ev in pg.event.get():          
+            if ev.type==pg.QUIT:
+                pg.quit()
+                sys.exit() 
+            if ev.type == pg.MOUSEBUTTONDOWN:
+                scalewd = pg.display.get_surface().get_size()
+                if scalewd!=scalewwdd:
+                    scale *= scalewd[0]/scalewwdd[0]
+                    scalewwdd = scalewd                 
+                if ev.button==1 and o1.rect.collidepoint(poschuot):
+                    self.chon = "ip"
+                if ev.button==1 and o2.rect.collidepoint(poschuot):self.chon = "port"
+            if ev.type == pg.KEYDOWN:
+                if ev.key == pg.K_BACKSPACE:
+                    dic[self.chon].text=dic[self.chon].text[:-1]
+                if ev.key == pg.K_RETURN and len(o1.text)>0 and len(o2.text)>0:
+                    self.ip=o1.text
+                    self.port=o2.text
+                    o1.text=o2.text=''
+                if font1.render(dic[self.chon].text,True,(255,255,255)).get_rect()[2]<250 and any((ev.unicode.isalpha(),ev.unicode.isdigit(),ev.unicode=='.')):
+                    dic[self.chon].text+=ev.unicode
+        try:
+            if '' not in (self.ip,self.port): return (self.ip,int(self.port))
+        except: 
+            dflip = True
+        if dflip:sc.blit(font1.render("ip hoặc port không hợp lệ",True,(0,255,255)),(1900/2-255,602))
+        o1.display(self.chon)
+        o2.display(self.chon)
+        pg.display.set_caption(str(self.chon==o1.st))
+        sc.blit(chuot,poschuot)
+        pg.display.flip()
+    def taophong():
+        sc.blit(anhnen,(0,0))
+        
+        
+        
+        
+        
+        
+class chonnhanvat:
+    def option(self):
+        dic = ["ryu","chunli","pikachu"]
+        for i in range(3):
+            pg.draw.rect(sc,(255,255,255),(205+i*400,400,300,300),2)
+            sc.blit(pg.transform.scale(pg.image.load(f"hhh\_{i}.jpg"),(200,270)),(255+i*400,420))
+###############################################
+O=text(1900/2-200,400,"nhập tên:",1)
+o1 = text(1900/2-200,400,"nhập ip phòng:","ip")
+o2 = text(1900/2-200,500,"nhập port:","port")
+laydiachi=ketnoi(1900/2-200,400)
+chuot = pg.transform.scale(pg.image.load("hinh.jpg"),(50,500/9))
+###############################################
+#     """ viết hàm nhận gửi ở đây    """      #
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################
+scalewwdd = (1800,900)
+pg.mixer.music.load(f"soundtrack\s{random.choice([1,1,2,2,2])}.mp3")
+class pause():
+    def __init__(self):
+        self.bool = False
+        self.rect = pg.Rect(1700,50,50,50)
+    def draww(self):
+        pg.draw.rect(sc,(0,255,255),(1700,50,50,50))
+    def bang(self):
+        if self.bool:
+            anh=pg.transform.scale(pg.image.load(r"hhh\taophong0.jpg"),(1000,500))
+            sc.blit(anh,(400,200))
+pause_ = pause()
+while True:
+    pg.mouse.set_visible(False)
+    poschuot = pg.mouse.get_pos()
+    clock.tick(450)
+    if stage==0:
+        anhnen = pg.transform.scale(pg.image.load(r"hhh\nen.jpg"),(1900*scale*0.8,900*scale*0.8))
+        sc.fill((0,0,0))
+        O.display(1)
+        for ev in pg.event.get():
+            if ev.type == pg.MOUSEBUTTONDOWN:
+                scalewd = pg.display.get_surface().get_size()
+                if scalewd!=scalewwdd:
+                    scale *= scalewd[0]/scalewwdd[0]
+                    scalewwdd = scalewd 
+            if ev.type==pg.QUIT:
+                pg.quit()
+                sys.exit()
+            if ev.type == pg.KEYDOWN:
+                if ev.key == pg.K_BACKSPACE and 1==O.st:
+                    O.text=O.text[:-1]
+                if ev.key == pg.K_RETURN and len(O.text)>0:
+                    name = O.text
+                if font1.render(O.text,True,(255,255,255)).get_rect()[2]<250 and any((ev.unicode.isalpha(),ev.unicode.isdigit(),ev.unicode=='.')):
+                    O.text+=ev.unicode        
+        if name not in (None, ''):stage+=1        
+        sc.blit(chuot,poschuot)
+        pg.display.update()
+    if stage == 1:
+        anhnen = pg.transform.scale(pg.image.load(r"hhh\nen.jpg"),(1900*scale*0.8,900*scale*0.8))
+        if not pg.mixer.music.get_busy():
+            pg.mixer.music.play(-1)
+        if laydiachi.__ not in ["vaophong", "taophong"]:laydiachi.option()
+        elif laydiachi.__=="vaophong":
+            if laydiachi.vaophong():
+                ip,port=laydiachi.vaophong()
+                if None not in (ip,port):stage+=1
+        else:laydiachi.taophong()
+    if stage == 2:
+        anhnen = pg.transform.scale(pg.image.load(r"hhh\nen.jpg"),(1900*scale*0.8,900*scale*0.8))
+        sc.fill((0,0,0))
+        chonnhanvat().option()
+        for ev in pg.event.get():
+            if ev.type == pg.MOUSEBUTTONDOWN:
+                try:
+                    jk=[('ryu', 'chunli', 'pikachu')][(poschuot[1]-200)//400][(poschuot[0]-200)//400]
+                    hung = animate(nhal[jk],tm,jk,stt)
+                    stage+=1
+                except Exception as e: print(e)
+                scalewd = pg.display.get_surface().get_size()
+                if scalewd!=scalewwdd:
+                    scale *= scalewd[0]/scalewwdd[0]
+                    scalewwdd = scalewd           
+            if ev.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+        sc.blit(chuot,poschuot)
+        pg.display.flip()
+    if stage==3:
+        if fhe: 
+            p1.start()
+            fhe=False
+        for ev in pg.event.get():
+            if ev.type == pg.QUIT:
+                pg.quit()
+                sys.exit()
+            if hp>0:
+                if ev.type == pg.KEYDOWN:
+                    if ev.key == pg.K_UP and stt not in ["JUMPING", "HIGHKICK","bruh"]:
+                        att=0
+                        if not special:stt = "JUMPING"
+                        else:
+                            special=False
+                            stt="HIGHKICK"
+                        hung.tm=int(tm)
+                    if ev.key == pg.K_a and stt != "JUMPING":
+                        att=0
+                        stt = "KICK"
+                        hung.tm=int(tm)
+                    if ev.key == pg.K_s and stt != "JUMPING":
+                        att=0
+                        stt = "PUNCH"
+                        hung.tm=int(tm)
+                    if ev.key == pg.K_RIGHT:
+                        getpr = "RIGHT"
+                    if ev.key == pg.K_LEFT:
+                        getpr = "LEFT"
+                    if ev.key == pg.K_q and stamina>2:
+                        special = True
+                    if ev.key == pg.K_DOWN and stt not in ["HIGHKICK","JUMPING","bruh"]:
+                        stt="LOWKICK"
+                        att=0
+                if ev.type == pg.KEYUP:
+                    if ev.key == pg.K_q:
+                        special = False            
+                    if ev.key == pg.K_LEFT and getpr == "LEFT":
+                        getpr=""
+                        if stt in ["MOVING", "RUNNING"]:
+                            stt = "STANDING"
+                            att=0
+                            hung.tm = int(tm)
+                    if ev.key == pg.K_RIGHT and getpr == "RIGHT":
+                        getpr=""
+                        if stt in ["MOVING", "RUNNING"]:
+                            stt = "STANDING"
+                            att=0
+                            hung.tm = int(tm)
+            if ev.type == pg.MOUSEBUTTONDOWN:
+                scalewd = pg.display.get_surface().get_size()
+                if scalewd!=scalewwdd:
+                    scale *= scalewd[0]/scalewwdd[0]
+                    scalewwdd = scalewd                  
+        if att==1 and x<1900-300:
+            x+=1.5
+        if att==2 and x>0:
+            x-=1.5
+        if att==3 and x<1900-300:x+=3
+        if att==4 and x>0:x-=3
+        if stt not in ["JUMPING","KICK","PUNCH","HIGHKICK","LOWKICK"]:
+            if not special:
+                if getpr == "RIGHT":
+                    stt = "MOVING"
+                    att=1
+                    fx=False
+                if getpr == "LEFT":
+                    stt = "MOVING"
+                    att=2
+                    fx=True
+            else:
+                if getpr == "RIGHT":
+                    stamina-=5
+                    stt = "RUNNING"
+                    att=3
+                    fx=False
+                if getpr == "LEFT":
+                    stamina-=5
+                    stt = "RUNNING"
+                    att=4
+                    fx=True
+        if stt in ["JUMPING", "HIGHKICK"] and getpr != '':
+            if getpr == "RIGHT": att=1
+            else: att=2
+        elif getpr=='': att=0
+        if stamina<1000:stamina+=1
+        if stamina<2 and special: special = False
+        if (y>450*scale1/1.2 and stt != "LOWKICK") or (stt!="JUMPING" and y<450*scale1/1.2):y=450*scale1/1.2
+        tm+=0.065
