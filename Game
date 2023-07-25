@@ -1,0 +1,54 @@
+import pygame as pg
+import sys
+import cv2
+import numpy as np
+pg.init()
+sc = pg.display.set_mode((1900,900),pg.RESIZABLE)
+with open("map.txt", "r") as f:
+    ds = f.readlines()
+AA = cv2.imread("m.png")
+Map = pg.transform.scale(pg.image.load("m.png"), (AA.shape[1]*10, AA.shape[0]*10))
+x,y=600,300
+xx=yy=0
+
+
+
+
+def collision():
+    global xx, yy,  x, y
+    if yy and int(ds[int((450-y-abs(yy)/yy*10)/10)][int((1900/2-x)/10)]): 
+        y-= abs(yy)/yy*10
+        yy=0
+    if xx and int(ds[int((450-y)/10)][int((1900/2-x-abs(xx)/xx*10)/10)]): 
+        x-= abs(xx)/xx*10
+        xx=0
+    if yy:
+        for ii in (450,440,460):
+            if int(ds[int((ii-y-abs(yy)/yy*15)/10)][int((1900/2-x)/10)]): break
+        y += yy
+    if xx:
+        for ii in (1900/2, 1900/2-10, 1900/2+10):
+            if int(ds[int((450-y)/10)][int((ii-x-abs(xx)/xx*15)/10)]): break
+        x+=xx
+
+while True:
+    sc.fill((0,0,0))
+    sc.blit(Map,(x,y))
+    pg.draw.circle(sc,(200,100,200),(1900/2,450),10)
+    for ev in pg.event.get():
+        if ev.type == pg.QUIT:
+            pg.quit()
+            sys.exit()
+        if ev.type == pg.KEYDOWN:
+            if ev.key == pg.K_UP: yy=10
+            if ev.key == pg.K_DOWN: yy=-10
+            if ev.key == pg.K_RIGHT: xx=-10
+            if ev.key == pg.K_LEFT: xx=10
+        if ev.type == pg.KEYUP:
+            if ev.key == pg.K_UP and yy==10 or ev.key == pg.K_DOWN and yy==-10: yy=0
+            if ev.key == pg.K_RIGHT and xx==-10 or ev.key == pg.K_LEFT and xx==10: xx=0
+    
+            
+            
+    collision()     
+    pg.display.update()
